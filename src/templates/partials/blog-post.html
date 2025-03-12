@@ -1,0 +1,33 @@
+<div class="blog-post">
+    <header class="post-header">
+        <h1 class="post-title">{{title}}</h1>
+        <div class="post-meta">
+            <span class="post-date">{{date}}</span>
+            <span class="post-author">by {{author}}</span>
+            <span class="post-categories">{{categories}}</span>
+        </div>
+    </header>
+
+    <article class="post-content">
+        {{content}}
+    </article>
+
+    <footer class="post-footer">
+        {{> convertkit}}
+
+        <div class="post-navigation">
+            {{#if previousPost}}
+            <a href="{{previousPost.url}}" class="prev-post">← {{previousPost.title}}</a>
+            {{/if}}
+            {{#if nextPost}}
+            <a href="{{nextPost.url}}" class="next-post">{{nextPost.title}} →</a>
+            {{/if}}
+        </div>
+
+        <div class="share-buttons">
+            <h3>Share this post</h3>
+            <a href="https://twitter.com/intent/tweet?text={{title}}&url={{url}}" target="_blank" class="share-button twitter">Twitter</a>
+            <a href="https://www.linkedin.com/shareArticle?mini=true&url={{url}}&title={{title}}" target="_blank" class="share-button linkedin">LinkedIn</a>
+        </div>
+    </footer>
+</div> 
