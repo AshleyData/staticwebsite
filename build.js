@@ -9,7 +9,7 @@ const baseUrl = '/staticwebsite';
 marked.use({
     renderer: {
         link(href, title, text) {
-            // Only add baseUrl if it's not already there
+            // Only add baseUrl if it's a local path and doesn't already have the baseUrl
             if (href && href.startsWith('/') && !href.startsWith('//') && !href.startsWith(baseUrl)) {
                 href = baseUrl + href;
             }
@@ -90,13 +90,14 @@ function processPage(filePath) {
     const titleMatch = content.match(/^#\s+(.+)$/m);
     const title = titleMatch ? titleMatch[1] : path.basename(filePath, '.md');
     
-    // Don't add baseUrl here since marked renderer already handles it
+    // Process the header template first to add baseUrl to nav links
+    let processedHeader = header.replace(/{{title}}/g, title);
+    processedHeader = convertMarkdown(processedHeader);
     
-    return header
-        .replace(/{{title}}/g, title)
-        .replace(/{{baseUrl}}/g, baseUrl) + 
-        html + 
-        footer.replace(/{{baseUrl}}/g, baseUrl);
+    // Process the footer template
+    let processedFooter = convertMarkdown(footer);
+    
+    return processedHeader + html + processedFooter;
 }
 
 // Process a blog post
@@ -104,8 +105,6 @@ function processBlogPost(filePath, previousPost, nextPost) {
     const content = fs.readFileSync(filePath, 'utf-8');
     let html = convertMarkdown(content);
     const metadata = extractMetadata(content);
-    
-    // Don't add baseUrl here since marked renderer already handles it
     
     // Replace kit form placeholder with the actual form
     let kitHtml = kitForm
@@ -124,7 +123,7 @@ function processBlogPost(filePath, previousPost, nextPost) {
     // Add navigation if available
     if (previousPost) {
         postHtml = postHtml.replace('{{#if previousPost}}', '')
-            .replace(/{{previousPost.url}}/g, previousPost.url.startsWith(baseUrl) ? previousPost.url : `${baseUrl}${previousPost.url}`)
+            .replace(/{{previousPost.url}}/g, previousPost.url)
             .replace(/{{previousPost.title}}/g, previousPost.title)
             .replace('{{/if}}', '');
     } else {
@@ -133,18 +132,21 @@ function processBlogPost(filePath, previousPost, nextPost) {
 
     if (nextPost) {
         postHtml = postHtml.replace('{{#if nextPost}}', '')
-            .replace(/{{nextPost.url}}/g, nextPost.url.startsWith(baseUrl) ? nextPost.url : `${baseUrl}${nextPost.url}`)
+            .replace(/{{nextPost.url}}/g, nextPost.url)
             .replace(/{{nextPost.title}}/g, nextPost.title)
             .replace('{{/if}}', '');
     } else {
         postHtml = postHtml.replace(/{{#if nextPost}}.*?{{\/if}}/s, '');
     }
 
-    return header
-        .replace(/{{title}}/g, metadata.title)
-        .replace(/{{baseUrl}}/g, baseUrl) + 
-        postHtml + 
-        footer.replace(/{{baseUrl}}/g, baseUrl);
+    // Process the header template first
+    let processedHeader = header.replace(/{{title}}/g, metadata.title);
+    processedHeader = convertMarkdown(processedHeader);
+    
+    // Process the footer template
+    let processedFooter = convertMarkdown(footer);
+    
+    return processedHeader + postHtml + processedFooter;
 }
 
 // Build all markdown files
