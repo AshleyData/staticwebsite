@@ -3,7 +3,7 @@ const path = require('path');
 const marked = require('marked');
 
 // Base URL for GitHub Pages
-const baseUrl = '/Static-Site';
+const baseUrl = '/staticwebsite';
 
 // Configure marked to handle relative URLs
 marked.use({
