@@ -19,15 +19,18 @@ marked.use({
 });
 
 // Ensure directories exist
-if (!fs.existsSync('public')) {
-    fs.mkdirSync('public');
-}
-if (!fs.existsSync('public/css')) {
-    fs.mkdirSync('public/css');
-}
-if (!fs.existsSync('public/blog')) {
-    fs.mkdirSync('public/blog');
-}
+const dirs = [
+    'public',
+    'public/css',
+    'public/blog',
+    'public/projects'
+];
+
+dirs.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+});
 
 // Copy CSS
 fs.copyFileSync('src/css/style.css', 'public/css/style.css');
@@ -82,13 +85,16 @@ function extractMetadata(content) {
 // Process a regular page
 function processPage(filePath) {
     const content = fs.readFileSync(filePath, 'utf-8');
-    const html = convertMarkdown(content);
+    let html = convertMarkdown(content);
     
     const titleMatch = content.match(/^#\s+(.+)$/m);
     const title = titleMatch ? titleMatch[1] : path.basename(filePath, '.md');
     
+    // Replace all remaining absolute paths in the HTML
+    html = html.replace(/href="\//g, `href="${baseUrl}/`);
+    
     return header
-        .replace('{{title}}', title)
+        .replace(/{{title}}/g, title)
         .replace(/{{baseUrl}}/g, baseUrl) + 
         html + 
         footer.replace(/{{baseUrl}}/g, baseUrl);
@@ -97,8 +103,11 @@ function processPage(filePath) {
 // Process a blog post
 function processBlogPost(filePath, previousPost, nextPost) {
     const content = fs.readFileSync(filePath, 'utf-8');
-    const html = convertMarkdown(content);
+    let html = convertMarkdown(content);
     const metadata = extractMetadata(content);
+    
+    // Replace all remaining absolute paths in the HTML
+    html = html.replace(/href="\//g, `href="${baseUrl}/`);
     
     // Replace kit form placeholder with the actual form
     let kitHtml = kitForm
@@ -106,19 +115,19 @@ function processBlogPost(filePath, previousPost, nextPost) {
         .replace(/{{uid}}/g, kitConfig.uid);
     
     let postHtml = blogTemplate
-        .replace('{{title}}', metadata.title)
-        .replace('{{date}}', metadata.date)
-        .replace('{{author}}', metadata.author)
-        .replace('{{categories}}', metadata.categories)
-        .replace('{{content}}', html)
-        .replace('{{url}}', encodeURIComponent(baseUrl + filePath.replace('src/content', '')))
-        .replace('{{> convertkit}}', kitHtml);
+        .replace(/{{title}}/g, metadata.title)
+        .replace(/{{date}}/g, metadata.date)
+        .replace(/{{author}}/g, metadata.author)
+        .replace(/{{categories}}/g, metadata.categories)
+        .replace(/{{content}}/g, html)
+        .replace(/{{url}}/g, encodeURIComponent(baseUrl + filePath.replace('src/content', '')))
+        .replace(/{{> convertkit}}/g, kitHtml);
 
     // Add navigation if available
     if (previousPost) {
         postHtml = postHtml.replace('{{#if previousPost}}', '')
-            .replace('{{previousPost.url}}', baseUrl + previousPost.url)
-            .replace('{{previousPost.title}}', previousPost.title)
+            .replace(/{{previousPost.url}}/g, baseUrl + previousPost.url)
+            .replace(/{{previousPost.title}}/g, previousPost.title)
             .replace('{{/if}}', '');
     } else {
         postHtml = postHtml.replace(/{{#if previousPost}}.*?{{\/if}}/s, '');
@@ -126,15 +135,15 @@ function processBlogPost(filePath, previousPost, nextPost) {
 
     if (nextPost) {
         postHtml = postHtml.replace('{{#if nextPost}}', '')
-            .replace('{{nextPost.url}}', baseUrl + nextPost.url)
-            .replace('{{nextPost.title}}', nextPost.title)
+            .replace(/{{nextPost.url}}/g, baseUrl + nextPost.url)
+            .replace(/{{nextPost.title}}/g, nextPost.title)
             .replace('{{/if}}', '');
     } else {
         postHtml = postHtml.replace(/{{#if nextPost}}.*?{{\/if}}/s, '');
     }
 
     return header
-        .replace('{{title}}', metadata.title)
+        .replace(/{{title}}/g, metadata.title)
         .replace(/{{baseUrl}}/g, baseUrl) + 
         postHtml + 
         footer.replace(/{{baseUrl}}/g, baseUrl);
