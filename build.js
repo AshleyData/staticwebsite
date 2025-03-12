@@ -104,8 +104,18 @@ function processPage(filePath) {
 // Process a blog post
 function processBlogPost(filePath, previousPost, nextPost) {
     const content = fs.readFileSync(filePath, 'utf-8');
-    let html = convertMarkdown(content);
     const metadata = extractMetadata(content);
+    
+    // Remove the title and date from the content
+    let processedContent = content
+        // Remove the title (# Title)
+        .replace(/^#\s+(.+)$/m, '')
+        // Remove the date (*Date*)
+        .replace(/^\*(.+?)\*$/m, '')
+        // Remove any empty lines at the start
+        .replace(/^\s+/, '');
+    
+    let html = convertMarkdown(processedContent);
     
     // Replace kit form placeholder with the actual form
     let kitHtml = kitForm
