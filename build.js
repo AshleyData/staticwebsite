@@ -120,13 +120,13 @@ function processBlogPost(filePath, previousPost, nextPost) {
         .replace(/{{author}}/g, metadata.author)
         .replace(/{{categories}}/g, metadata.categories)
         .replace(/{{content}}/g, html)
-        .replace(/{{url}}/g, encodeURIComponent(baseUrl + filePath.replace('src/content', '')))
-        .replace(/{{> convertkit}}/g, kitHtml);
+        .replace(/{{url}}/g, encodeURIComponent(`https://ashleydata.github.io${baseUrl}${filePath.replace('src/content', '')}`))
+        .replace('{{> convertkit}}', kitHtml);
 
     // Add navigation if available
     if (previousPost) {
         postHtml = postHtml.replace('{{#if previousPost}}', '')
-            .replace(/{{previousPost.url}}/g, baseUrl + previousPost.url)
+            .replace(/{{previousPost.url}}/g, `${baseUrl}${previousPost.url}`)
             .replace(/{{previousPost.title}}/g, previousPost.title)
             .replace('{{/if}}', '');
     } else {
@@ -135,7 +135,7 @@ function processBlogPost(filePath, previousPost, nextPost) {
 
     if (nextPost) {
         postHtml = postHtml.replace('{{#if nextPost}}', '')
-            .replace(/{{nextPost.url}}/g, baseUrl + nextPost.url)
+            .replace(/{{nextPost.url}}/g, `${baseUrl}${nextPost.url}`)
             .replace(/{{nextPost.title}}/g, nextPost.title)
             .replace('{{/if}}', '');
     } else {
@@ -179,12 +179,12 @@ function buildSite() {
             
             const previousPost = blogFiles[index + 1] ? {
                 url: '/blog/' + blogFiles[index + 1].replace('.md', '.html'),
-                title: path.basename(blogFiles[index + 1], '.md')
+                title: path.basename(blogFiles[index + 1], '.md').replace(/-/g, ' ')
             } : null;
 
             const nextPost = blogFiles[index - 1] ? {
                 url: '/blog/' + blogFiles[index - 1].replace('.md', '.html'),
-                title: path.basename(blogFiles[index - 1], '.md')
+                title: path.basename(blogFiles[index - 1], '.md').replace(/-/g, ' ')
             } : null;
 
             const html = processBlogPost(filePath, previousPost, nextPost);
