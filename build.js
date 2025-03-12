@@ -2,6 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const marked = require('marked');
 
+// Base URL for GitHub Pages
+const baseUrl = '/Static-Site';
+
 // Ensure directories exist
 if (!fs.existsSync('public')) {
     fs.mkdirSync('public');
@@ -71,7 +74,11 @@ function processPage(filePath) {
     const titleMatch = content.match(/^#\s+(.+)$/m);
     const title = titleMatch ? titleMatch[1] : path.basename(filePath, '.md');
     
-    return header.replace('{{title}}', title) + html + footer;
+    return header
+        .replace('{{title}}', title)
+        .replace(/{{baseUrl}}/g, baseUrl) + 
+        html + 
+        footer.replace(/{{baseUrl}}/g, baseUrl);
 }
 
 // Process a blog post
@@ -91,13 +98,13 @@ function processBlogPost(filePath, previousPost, nextPost) {
         .replace('{{author}}', metadata.author)
         .replace('{{categories}}', metadata.categories)
         .replace('{{content}}', html)
-        .replace('{{url}}', encodeURIComponent('http://localhost:3000' + filePath.replace('src/content', '')))
+        .replace('{{url}}', encodeURIComponent(baseUrl + filePath.replace('src/content', '')))
         .replace('{{> convertkit}}', kitHtml);
 
     // Add navigation if available
     if (previousPost) {
         postHtml = postHtml.replace('{{#if previousPost}}', '')
-            .replace('{{previousPost.url}}', previousPost.url)
+            .replace('{{previousPost.url}}', baseUrl + previousPost.url)
             .replace('{{previousPost.title}}', previousPost.title)
             .replace('{{/if}}', '');
     } else {
@@ -106,14 +113,18 @@ function processBlogPost(filePath, previousPost, nextPost) {
 
     if (nextPost) {
         postHtml = postHtml.replace('{{#if nextPost}}', '')
-            .replace('{{nextPost.url}}', nextPost.url)
+            .replace('{{nextPost.url}}', baseUrl + nextPost.url)
             .replace('{{nextPost.title}}', nextPost.title)
             .replace('{{/if}}', '');
     } else {
         postHtml = postHtml.replace(/{{#if nextPost}}.*?{{\/if}}/s, '');
     }
 
-    return header.replace('{{title}}', metadata.title) + postHtml + footer;
+    return header
+        .replace('{{title}}', metadata.title)
+        .replace(/{{baseUrl}}/g, baseUrl) + 
+        postHtml + 
+        footer.replace(/{{baseUrl}}/g, baseUrl);
 }
 
 // Build all markdown files
