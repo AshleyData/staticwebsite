@@ -5,6 +5,19 @@ const marked = require('marked');
 // Base URL for GitHub Pages
 const baseUrl = '/Static-Site';
 
+// Configure marked to handle relative URLs
+marked.use({
+    renderer: {
+        link(href, title, text) {
+            // If it's a relative URL, prefix it with baseUrl
+            if (href && href.startsWith('/') && !href.startsWith('//')) {
+                href = baseUrl + href;
+            }
+            return `<a href="${href}"${title ? ` title="${title}"` : ''}>${text}</a>`;
+        }
+    }
+});
+
 // Ensure directories exist
 if (!fs.existsSync('public')) {
     fs.mkdirSync('public');
