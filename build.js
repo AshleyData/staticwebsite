@@ -90,12 +90,13 @@ function processPage(filePath) {
     const titleMatch = content.match(/^#\s+(.+)$/m);
     const title = titleMatch ? titleMatch[1] : path.basename(filePath, '.md');
     
-    // Process the header template first to add baseUrl to nav links
-    let processedHeader = header.replace(/{{title}}/g, title);
-    processedHeader = convertMarkdown(processedHeader);
+    // Process templates without running them through markdown
+    let processedHeader = header
+        .replace(/{{title}}/g, title)
+        .replace(/{{baseUrl}}/g, baseUrl);
     
-    // Process the footer template
-    let processedFooter = convertMarkdown(footer);
+    let processedFooter = footer
+        .replace(/{{baseUrl}}/g, baseUrl);
     
     return processedHeader + html + processedFooter;
 }
@@ -123,7 +124,7 @@ function processBlogPost(filePath, previousPost, nextPost) {
     // Add navigation if available
     if (previousPost) {
         postHtml = postHtml.replace('{{#if previousPost}}', '')
-            .replace(/{{previousPost.url}}/g, previousPost.url)
+            .replace(/{{previousPost.url}}/g, baseUrl + previousPost.url)
             .replace(/{{previousPost.title}}/g, previousPost.title)
             .replace('{{/if}}', '');
     } else {
@@ -132,19 +133,20 @@ function processBlogPost(filePath, previousPost, nextPost) {
 
     if (nextPost) {
         postHtml = postHtml.replace('{{#if nextPost}}', '')
-            .replace(/{{nextPost.url}}/g, nextPost.url)
+            .replace(/{{nextPost.url}}/g, baseUrl + nextPost.url)
             .replace(/{{nextPost.title}}/g, nextPost.title)
             .replace('{{/if}}', '');
     } else {
         postHtml = postHtml.replace(/{{#if nextPost}}.*?{{\/if}}/s, '');
     }
 
-    // Process the header template first
-    let processedHeader = header.replace(/{{title}}/g, metadata.title);
-    processedHeader = convertMarkdown(processedHeader);
+    // Process templates without running them through markdown
+    let processedHeader = header
+        .replace(/{{title}}/g, metadata.title)
+        .replace(/{{baseUrl}}/g, baseUrl);
     
-    // Process the footer template
-    let processedFooter = convertMarkdown(footer);
+    let processedFooter = footer
+        .replace(/{{baseUrl}}/g, baseUrl);
     
     return processedHeader + postHtml + processedFooter;
 }
